@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -14,6 +15,7 @@ class BalanceSummaryCard extends StatelessWidget {
     final financeProv = context.watch<FinanceProvider>();
     final activeGroup = financeProv.activeGroup;
     final currency = financeProv.currencySymbol;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     final balance = financeProv.groupBalance;
     final income = financeProv.groupIncome;
@@ -24,237 +26,301 @@ class BalanceSummaryCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            baseColor.withOpacity(0.95),
-            Color.lerp(baseColor, AppColors.accent, 0.45)!,
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(26),
         boxShadow: [
           BoxShadow(
-            color: baseColor.withOpacity(0.35),
-            blurRadius: 18,
-            offset: const Offset(0, 8),
+            color: baseColor.withOpacity(isDark ? 0.35 : 0.20),
+            blurRadius: 28,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
-      child: Stack(
-        children: [
-          // Subtle background decorative circles
-          Positioned(
-            right: -20,
-            top: -20,
-            child: CircleAvatar(
-              radius: 60,
-              backgroundColor: Colors.white.withOpacity(0.08),
-            ),
-          ),
-          Positioned(
-            left: -15,
-            bottom: -15,
-            child: CircleAvatar(
-              radius: 40,
-              backgroundColor: Colors.white.withOpacity(0.05),
-            ),
-          ),
-
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                // Top Row: Active group title & Members pill
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Row(
-                      children: [
-                        if (activeGroup != null)
-                          CircleAvatar(
-                            radius: 14,
-                            backgroundColor: Colors.white.withOpacity(0.2),
-                            child: Icon(
-                              IconData(activeGroup.iconCode, fontFamily: 'MaterialIcons'),
-                              size: 16,
-                              color: Colors.white,
-                            ),
-                          ),
-                        const SizedBox(width: 8),
-                        Text(
-                          activeGroup?.name ?? 'General Ledger',
-                          style: const TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(26),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 16, sigmaY: 16),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(26),
+              border: Border.all(
+                color: Colors.white.withOpacity(isDark ? 0.22 : 0.6),
+                width: 1.4,
+              ),
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: isDark
+                    ? [
+                        baseColor.withOpacity(0.55),
+                        Color.lerp(baseColor, AppColors.accent, 0.45)!.withOpacity(0.35),
+                        Colors.black.withOpacity(0.4),
+                      ]
+                    : [
+                        baseColor.withOpacity(0.85),
+                        Color.lerp(baseColor, AppColors.accent, 0.35)!.withOpacity(0.80),
                       ],
-                    ),
-
-                    // Members & Invite button
-                    InkWell(
-                      onTap: onManageMembers,
-                      borderRadius: BorderRadius.circular(16),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.2),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Row(
-                          children: [
-                            const Icon(Icons.people_alt_rounded, size: 14, color: Colors.white),
-                            const SizedBox(width: 4),
-                            Text(
-                              '${activeGroup?.members.length ?? 1} Members',
-                              style: const TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(width: 2),
-                            const Icon(Icons.chevron_right_rounded, size: 14, color: Colors.white),
-                          ],
-                        ),
+              ),
+            ),
+            child: Stack(
+              children: [
+                // Subtle glowing orb top-right
+                Positioned(
+                  top: -30,
+                  right: -30,
+                  child: Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: RadialGradient(
+                        colors: [
+                          Colors.white.withOpacity(isDark ? 0.25 : 0.4),
+                          Colors.transparent,
+                        ],
                       ),
                     ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-
-                // Net Balance Label
-                Text(
-                  'NET GROUP BALANCE',
-                  style: TextStyle(
-                    fontSize: 11,
-                    letterSpacing: 1.2,
-                    fontWeight: FontWeight.w700,
-                    color: Colors.white.withOpacity(0.8),
                   ),
                 ),
-                const SizedBox(height: 4),
 
-                // Big Net Balance Value
-                Text(
-                  CurrencyFormatter.format(balance, symbol: currency),
-                  style: const TextStyle(
-                    fontSize: 32,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 18),
-
-                // Income vs Expense Sub-cards
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-                  decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.18),
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Row(
+                Padding(
+                  padding: const EdgeInsets.all(22),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Total Income
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: BoxDecoration(
-                                color: AppColors.income.withOpacity(0.25),
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(
-                                Icons.arrow_downward_rounded,
-                                color: AppColors.income,
-                                size: 16,
+                      // Top Row: Active Circle Badge + Members Button
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withOpacity(0.18),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(
+                                color: Colors.white.withOpacity(0.3),
+                                width: 1,
                               ),
                             ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    'Total Income',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.white.withOpacity(0.8),
-                                    ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (activeGroup != null)
+                                  Icon(
+                                    IconData(activeGroup.iconCode, fontFamily: 'MaterialIcons'),
+                                    size: 15,
+                                    color: Colors.white,
                                   ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  activeGroup?.name ?? 'General Ledger',
+                                  style: const TextStyle(
+                                    fontSize: 13,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.white,
+                                    letterSpacing: -0.2,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+
+                          // Members Pill Button
+                          InkWell(
+                            onTap: onManageMembers,
+                            borderRadius: BorderRadius.circular(16),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                              decoration: BoxDecoration(
+                                color: Colors.black.withOpacity(0.2),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: Colors.white.withOpacity(0.2),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(Icons.people_alt_rounded, size: 14, color: Colors.white),
+                                  const SizedBox(width: 5),
                                   Text(
-                                    CurrencyFormatter.format(income, symbol: currency),
+                                    '${activeGroup?.members.length ?? 1} Partners',
                                     style: const TextStyle(
-                                      fontSize: 14,
+                                      fontSize: 11,
                                       fontWeight: FontWeight.bold,
                                       color: Colors.white,
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  const SizedBox(width: 2),
+                                  const Icon(Icons.chevron_right_rounded, size: 14, color: Colors.white),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 18),
+
+                      // Net Balance Label
+                      Row(
+                        children: [
+                          Text(
+                            'NET GROUP BALANCE',
+                            style: TextStyle(
+                              fontSize: 11,
+                              letterSpacing: 1.5,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.white.withOpacity(0.85),
+                            ),
+                          ),
+                          const SizedBox(width: 6),
+                          Container(
+                            width: 6,
+                            height: 6,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: balance >= 0 ? AppColors.incomeGlow : AppColors.expenseGlow,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: (balance >= 0 ? AppColors.incomeGlow : AppColors.expenseGlow).withOpacity(0.8),
+                                  blurRadius: 6,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+
+                      // Large Luminous Net Balance Value
+                      Text(
+                        CurrencyFormatter.format(balance, symbol: currency),
+                        style: const TextStyle(
+                          fontSize: 34,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -0.8,
+                        ),
+                      ),
+                      const SizedBox(height: 20),
+
+                      // Frosted Glass Capsules for Income vs Expense
+                      Row(
+                        children: [
+                          // Total Income Capsule
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                              decoration: BoxDecoration(
+                                color: Colors.white.withOpacity(isDark ? 0.08 : 0.2),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.income.withOpacity(0.4),
+                                  width: 1,
+                                ),
+                              ),
+                              child: Row(
+                                children: [
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.income.withOpacity(0.3),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.arrow_downward_rounded,
+                                      color: AppColors.incomeGlow,
+                                      size: 14,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Income',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white.withOpacity(0.8),
+                                          ),
+                                        ),
+                                        Text(
+                                          CurrencyFormatter.format(income, symbol: currency),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
+                                    ),
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
-                      ),
+                          ),
+                          const SizedBox(width: 10),
 
-                      // Divider
-                      Container(
-                        height: 30,
-                        width: 1,
-                        color: Colors.white.withOpacity(0.2),
-                        margin: const EdgeInsets.symmetric(horizontal: 8),
-                      ),
-
-                      // Total Expense
-                      Expanded(
-                        child: Row(
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(8),
+                          // Total Expense Capsule
+                          Expanded(
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                               decoration: BoxDecoration(
-                                color: AppColors.expense.withOpacity(0.25),
-                                shape: BoxShape.circle,
+                                color: Colors.white.withOpacity(isDark ? 0.08 : 0.2),
+                                borderRadius: BorderRadius.circular(16),
+                                border: Border.all(
+                                  color: AppColors.expense.withOpacity(0.4),
+                                  width: 1,
+                                ),
                               ),
-                              child: const Icon(
-                                Icons.arrow_upward_rounded,
-                                color: AppColors.expense,
-                                size: 16,
-                              ),
-                            ),
-                            const SizedBox(width: 10),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                              child: Row(
                                 children: [
-                                  Text(
-                                    'Total Expense',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.white.withOpacity(0.8),
+                                  Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.expense.withOpacity(0.3),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    child: const Icon(
+                                      Icons.arrow_upward_rounded,
+                                      color: AppColors.expenseGlow,
+                                      size: 14,
                                     ),
                                   ),
-                                  Text(
-                                    CurrencyFormatter.format(expense, symbol: currency),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.white,
+                                  const SizedBox(width: 8),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'Expenses',
+                                          style: TextStyle(
+                                            fontSize: 10,
+                                            fontWeight: FontWeight.w600,
+                                            color: Colors.white.withOpacity(0.8),
+                                          ),
+                                        ),
+                                        Text(
+                                          CurrencyFormatter.format(expense, symbol: currency),
+                                          style: const TextStyle(
+                                            fontSize: 13,
+                                            fontWeight: FontWeight.w800,
+                                            color: Colors.white,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ],
                                     ),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ],
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -262,7 +328,7 @@ class BalanceSummaryCard extends StatelessWidget {
               ],
             ),
           ),
-        ],
+        ),
       ),
     );
   }

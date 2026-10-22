@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/utils/currency_formatter.dart';
+import '../../core/widgets/ambient_background.dart';
+import '../../core/widgets/glass_container.dart';
 import '../../providers/finance_provider.dart';
 import '../../services/drive/share_service.dart';
 
@@ -23,37 +25,46 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Add Partners / Members'),
+        backgroundColor: const Color(0xFF131A2A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.white.withOpacity(0.12)),
+        ),
+        title: const Text('Add Partners / Members', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         content: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
+              Text(
                 'Enter one or multiple partner names (separated by commas):',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6)),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 12),
               TextField(
                 controller: _nameController,
                 decoration: const InputDecoration(
                   labelText: 'Partner Names',
                   hintText: 'e.g. Rahul, Priya, Mom, Amit',
-                  prefixIcon: Icon(Icons.group_add_rounded),
+                  prefixIcon: Icon(Icons.group_add_rounded, color: AppColors.accent),
                 ),
                 autofocus: true,
               ),
-              const SizedBox(height: 10),
-              const Text('Quick Suggestions:', style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.grey)),
-              const SizedBox(height: 6),
+              const SizedBox(height: 14),
+              Text(
+                'Quick Suggestions:',
+                style: TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.white.withOpacity(0.7)),
+              ),
+              const SizedBox(height: 8),
               Wrap(
                 spacing: 6,
-                runSpacing: 4,
+                runSpacing: 6,
                 children: ['Mom', 'Dad', 'Partner', 'Brother', 'Roommate', 'Friend', 'Driver', 'Milkman'].map((s) {
                   return ActionChip(
                     visualDensity: VisualDensity.compact,
-                    label: Text('+ $s', style: const TextStyle(fontSize: 11)),
+                    backgroundColor: Colors.white.withOpacity(0.06),
+                    side: BorderSide(color: Colors.white.withOpacity(0.12)),
+                    label: Text('+ $s', style: const TextStyle(fontSize: 11, color: Colors.white)),
                     onPressed: () {
                       final current = _nameController.text.trim();
                       if (current.isEmpty) {
@@ -71,7 +82,7 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                 decoration: const InputDecoration(
                   labelText: 'Google Email (Optional for Drive invite)',
                   hintText: 'e.g., member@gmail.com',
-                  prefixIcon: Icon(Icons.email_outlined),
+                  prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -81,7 +92,7 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: Colors.white.withOpacity(0.7))),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -104,6 +115,10 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
                 if (ctx.mounted) Navigator.of(ctx).pop();
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Add Partners'),
           ),
         ],
@@ -125,264 +140,345 @@ class _GroupMembersScreenState extends State<GroupMembersScreen> {
     final currency = financeProv.currencySymbol;
 
     if (group == null) {
-      return Scaffold(
-        appBar: AppBar(title: const Text('Group Members')),
-        body: const Center(child: Text('No group selected')),
+      return const AmbientBackground(
+        child: Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Center(child: Text('No group selected', style: TextStyle(color: Colors.white))),
+        ),
       );
     }
 
     final splitBalances = financeProv.calculateGroupSplitBalances();
     final groupColor = Color(group.colorValue);
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('${group.name} • Members'),
-        actions: [
-          IconButton(
-            tooltip: 'Invite via WhatsApp / Share',
-            icon: const Icon(Icons.share_rounded),
-            onPressed: () {
-              ShareService.shareGroupInvite(group);
-            },
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Group Header Card
-          Container(
-            padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(
-              color: groupColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: groupColor.withOpacity(0.3)),
+    return AmbientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: Text('${group.name} • Members', style: const TextStyle(fontWeight: FontWeight.bold)),
+          actions: [
+            IconButton(
+              tooltip: 'Invite via WhatsApp / Share',
+              icon: const Icon(Icons.share_rounded),
+              onPressed: () {
+                ShareService.shareGroupInvite(group);
+              },
             ),
-            child: Row(
-              children: [
-                CircleAvatar(
-                  radius: 24,
-                  backgroundColor: groupColor,
-                  child: Icon(
-                    IconData(group.iconCode, fontFamily: 'MaterialIcons'),
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                ),
-                const SizedBox(width: 14),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        group.name,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ],
+        ),
+        body: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          children: [
+            // Frosted Group Header Card
+            GlassContainer(
+              borderRadius: 22,
+              tintColor: groupColor,
+              opacity: 0.16,
+              borderColor: groupColor.withOpacity(0.4),
+              padding: const EdgeInsets.all(18),
+              child: Row(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      gradient: LinearGradient(
+                        colors: [groupColor, groupColor.withOpacity(0.6)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      if (group.description.isNotEmpty)
-                        Text(
-                          group.description,
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                        ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${group.members.length} members in this circle',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w600,
-                          color: groupColor,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-                IconButton.filledTonal(
-                  icon: const Icon(Icons.person_add_rounded),
-                  tooltip: 'Add Member',
-                  onPressed: () => _showAddMemberDialog(context),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Settlement / Split Balances Card
-          Container(
-            padding: const EdgeInsets.all(18),
-            decoration: BoxDecoration(
-              color: Theme.of(context).cardColor,
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Theme.of(context).dividerColor.withOpacity(0.3)),
-              boxShadow: [
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.04),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    const Row(
-                      children: [
-                        Icon(Icons.balance_rounded, size: 20, color: AppColors.accent),
-                        SizedBox(width: 8),
-                        Text(
-                          'Who Owes Who (Settlements)',
-                          style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+                      boxShadow: [
+                        BoxShadow(
+                          color: groupColor.withOpacity(0.4),
+                          blurRadius: 14,
+                          offset: const Offset(0, 4),
                         ),
                       ],
                     ),
-                    TextButton.icon(
-                      onPressed: () {
-                        ShareService.shareGroupSummary(
-                          group: group,
-                          totalExpense: financeProv.groupExpense,
-                          totalIncome: financeProv.groupIncome,
-                          memberBalances: splitBalances,
-                          currencySymbol: currency,
-                        );
-                      },
-                      icon: const Icon(Icons.send_rounded, size: 14),
-                      label: const Text('Share Summary', style: TextStyle(fontSize: 12)),
+                    child: Icon(
+                      IconData(group.iconCode, fontFamily: 'MaterialIcons'),
+                      color: Colors.white,
+                      size: 26,
                     ),
-                  ],
-                ),
-                const SizedBox(height: 12),
-                if (splitBalances.isEmpty)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8),
-                    child: Text('No expenses recorded yet in this group.', style: TextStyle(color: Colors.grey)),
-                  )
-                else
-                  ...splitBalances.entries.map((entry) {
-                    final memberName = entry.key;
-                    final balance = entry.value;
-                    final isOwed = balance > 0.01;
-                    final owes = balance < -0.01;
-
-                    Color statusColor = Colors.grey;
-                    String statusText = 'Settled up';
-                    if (isOwed) {
-                      statusColor = AppColors.income;
-                      statusText = 'Should receive ${CurrencyFormatter.format(balance, symbol: currency)}';
-                    } else if (owes) {
-                      statusColor = AppColors.expense;
-                      statusText = 'Owes ${CurrencyFormatter.format(balance.abs(), symbol: currency)}';
-                    }
-
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 6),
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-                        decoration: BoxDecoration(
-                          color: statusColor.withOpacity(0.08),
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: statusColor.withOpacity(0.2)),
+                  ),
+                  const SizedBox(width: 14),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          group.name,
+                          style: const TextStyle(fontSize: 19, fontWeight: FontWeight.bold, color: Colors.white),
                         ),
-                        child: Row(
-                          children: [
-                            CircleAvatar(
-                              radius: 14,
-                              backgroundColor: statusColor.withOpacity(0.2),
-                              child: Text(
-                                memberName.isNotEmpty ? memberName[0].toUpperCase() : '?',
+                        if (group.description.isNotEmpty) ...[
+                          const SizedBox(height: 2),
+                          Text(
+                            group.description,
+                            style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.7)),
+                          ),
+                        ],
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: groupColor.withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: groupColor.withOpacity(0.3)),
+                          ),
+                          child: Text(
+                            '${group.members.length} members in circle',
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w600,
+                              color: groupColor.computeLuminance() < 0.4 ? Colors.white : groupColor,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.white.withOpacity(0.12),
+                      side: BorderSide(color: Colors.white.withOpacity(0.2)),
+                    ),
+                    icon: const Icon(Icons.person_add_rounded, color: Colors.white),
+                    tooltip: 'Add Member',
+                    onPressed: () => _showAddMemberDialog(context),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 20),
+
+            // Settlement / Split Balances Card
+            GlassContainer(
+              borderRadius: 22,
+              padding: const EdgeInsets.all(18),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Row(
+                        children: [
+                          Icon(Icons.balance_rounded, size: 20, color: AppColors.accent),
+                          SizedBox(width: 8),
+                          Text(
+                            'Who Owes Who (Settlements)',
+                            style: TextStyle(fontSize: 15, fontWeight: FontWeight.bold, color: Colors.white),
+                          ),
+                        ],
+                      ),
+                      TextButton.icon(
+                        onPressed: () {
+                          ShareService.shareGroupSummary(
+                            group: group,
+                            totalExpense: financeProv.groupExpense,
+                            totalIncome: financeProv.groupIncome,
+                            memberBalances: splitBalances,
+                            currencySymbol: currency,
+                          );
+                        },
+                        icon: const Icon(Icons.send_rounded, size: 14, color: AppColors.accent),
+                        label: const Text('Share Summary', style: TextStyle(fontSize: 12, color: AppColors.accent)),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (splitBalances.isEmpty)
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Text(
+                        'No expenses recorded yet in this group.',
+                        style: TextStyle(color: Colors.white.withOpacity(0.6)),
+                      ),
+                    )
+                  else
+                    ...splitBalances.entries.map((entry) {
+                      final memberName = entry.key;
+                      final balance = entry.value;
+                      final isOwed = balance > 0.01;
+                      final owes = balance < -0.01;
+
+                      Color statusColor = Colors.grey;
+                      String statusText = 'Settled up';
+                      if (isOwed) {
+                        statusColor = AppColors.income;
+                        statusText = 'Should receive ${CurrencyFormatter.format(balance, symbol: currency)}';
+                      } else if (owes) {
+                        statusColor = AppColors.expense;
+                        statusText = 'Owes ${CurrencyFormatter.format(balance.abs(), symbol: currency)}';
+                      }
+
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 5),
+                        child: GlassContainer(
+                          borderRadius: 14,
+                          tintColor: statusColor,
+                          opacity: 0.12,
+                          borderColor: statusColor.withOpacity(0.28),
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                          child: Row(
+                            children: [
+                              CircleAvatar(
+                                radius: 14,
+                                backgroundColor: statusColor.withOpacity(0.25),
+                                child: Text(
+                                  memberName.isNotEmpty ? memberName[0].toUpperCase() : '?',
+                                  style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.bold,
+                                    color: statusColor,
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 10),
+                              Text(
+                                memberName,
+                                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14, color: Colors.white),
+                              ),
+                              const Spacer(),
+                              Text(
+                                statusText,
                                 style: TextStyle(
-                                  fontSize: 12,
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                   color: statusColor,
                                 ),
                               ),
+                            ],
+                          ),
+                        ),
+                      );
+                    }).toList(),
+                ],
+              ),
+            ),
+            const SizedBox(height: 22),
+
+            // Member List Section
+            Text(
+              'MEMBERS IN GROUP',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
+                color: Colors.white.withOpacity(0.6),
+              ),
+            ),
+            const SizedBox(height: 10),
+            ...group.members.map((member) {
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: GlassContainer(
+                  borderRadius: 16,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              AppColors.primary,
+                              AppColors.primary.withOpacity(0.6),
+                            ],
+                          ),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(
+                          member.name.isNotEmpty ? member.name[0].toUpperCase() : '?',
+                          style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.white, fontSize: 16),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Text(
+                                  member.name,
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 15, color: Colors.white),
+                                ),
+                                if (member.isOwner) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withOpacity(0.2),
+                                      borderRadius: BorderRadius.circular(6),
+                                      border: Border.all(color: AppColors.primary.withOpacity(0.4)),
+                                    ),
+                                    child: const Text(
+                                      'Owner',
+                                      style: TextStyle(fontSize: 10, color: AppColors.primaryLight, fontWeight: FontWeight.bold),
+                                    ),
+                                  ),
+                                ],
+                              ],
                             ),
-                            const SizedBox(width: 10),
+                            const SizedBox(height: 2),
                             Text(
-                              memberName,
-                              style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14),
-                            ),
-                            const Spacer(),
-                            Text(
-                              statusText,
-                              style: TextStyle(
-                                fontWeight: FontWeight.bold,
-                                fontSize: 13,
-                                color: statusColor,
-                              ),
+                              member.email.isNotEmpty ? member.email : 'Local device member',
+                              style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6)),
                             ),
                           ],
                         ),
                       ),
-                    );
-                  }).toList(),
-              ],
-            ),
-          ),
-          const SizedBox(height: 20),
-
-          // Member List Section
-          const Text(
-            'Members in Group',
-            style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey),
-          ),
-          const SizedBox(height: 8),
-          ...group.members.map((member) {
-            return Card(
-              margin: const EdgeInsets.only(bottom: 8),
-              child: ListTile(
-                leading: CircleAvatar(
-                  backgroundColor: AppColors.primary.withOpacity(0.15),
-                  child: Text(
-                    member.name.isNotEmpty ? member.name[0].toUpperCase() : '?',
-                    style: const TextStyle(fontWeight: FontWeight.bold, color: AppColors.primary),
+                      if (!member.isOwner)
+                        IconButton(
+                          icon: Icon(Icons.delete_outline_rounded, color: Colors.white.withOpacity(0.5)),
+                          onPressed: () {
+                            financeProv.removeMemberFromActiveGroup(member.id);
+                          },
+                        ),
+                    ],
                   ),
                 ),
-                title: Row(
-                  children: [
-                    Text(member.name, style: const TextStyle(fontWeight: FontWeight.w600)),
-                    if (member.isOwner) ...[
-                      const SizedBox(width: 6),
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.15),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Text('Owner', style: TextStyle(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.bold)),
+              );
+            }).toList(),
+            const SizedBox(height: 20),
+
+            // Invite link button
+            GlassContainer(
+              borderRadius: 16,
+              tintColor: groupColor,
+              opacity: 0.25,
+              borderColor: groupColor.withOpacity(0.5),
+              padding: EdgeInsets.zero,
+              child: InkWell(
+                onTap: () => ShareService.shareGroupInvite(group),
+                borderRadius: BorderRadius.circular(16),
+                child: const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.person_add_alt_1_rounded, color: Colors.white, size: 20),
+                      SizedBox(width: 10),
+                      Text(
+                        'Invite More People to Share Expenses',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ],
-                  ],
+                  ),
                 ),
-                subtitle: Text(
-                  member.email.isNotEmpty ? member.email : 'Local device member',
-                  style: const TextStyle(fontSize: 12),
-                ),
-                trailing: member.isOwner
-                    ? null
-                    : IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, color: Colors.grey),
-                        onPressed: () {
-                          financeProv.removeMemberFromActiveGroup(member.id);
-                        },
-                      ),
               ),
-            );
-          }).toList(),
-          const SizedBox(height: 24),
-
-          // Invite link button
-          ElevatedButton.icon(
-            onPressed: () => ShareService.shareGroupInvite(group),
-            icon: const Icon(Icons.person_add_alt_1_rounded),
-            label: const Text('Invite More People to Share Expenses'),
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 14),
-              backgroundColor: groupColor,
             ),
-          ),
-        ],
+            const SizedBox(height: 30),
+          ],
+        ),
       ),
     );
   }
 }
+

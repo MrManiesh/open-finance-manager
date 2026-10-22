@@ -6,6 +6,8 @@ import 'package:provider/provider.dart';
 import 'package:share_plus/share_plus.dart';
 import '../../core/constants/app_constants.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/ambient_background.dart';
+import '../../core/widgets/glass_container.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/finance_provider.dart';
 import '../../providers/sync_provider.dart';
@@ -31,33 +33,41 @@ class SettingsScreen extends StatelessWidget {
     final financeProv = Provider.of<FinanceProvider>(context, listen: false);
     showModalBottomSheet(
       context: context,
+      backgroundColor: Colors.transparent,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (ctx) {
-        return ListView(
-          padding: const EdgeInsets.symmetric(vertical: 16),
-          children: [
-            const Padding(
-              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-              child: Text('Select Currency', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-            ),
-            ...currencies.map((c) {
-              final isSelected = c['symbol'] == financeProv.currencySymbol;
-              return ListTile(
-                leading: Text(
-                  c['symbol']!,
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primary),
+        return GlassContainer(
+          borderRadius: 24,
+          child: ListView(
+            shrinkWrap: true,
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            children: [
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                child: Text(
+                  'Select Currency',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                 ),
-                title: Text(c['name']!),
-                trailing: isSelected ? const Icon(Icons.check, color: AppColors.primary) : null,
-                onTap: () {
-                  financeProv.setCurrency(c['symbol']!);
-                  Navigator.of(ctx).pop();
-                },
-              );
-            }).toList(),
-          ],
+              ),
+              ...currencies.map((c) {
+                final isSelected = c['symbol'] == financeProv.currencySymbol;
+                return ListTile(
+                  leading: Text(
+                    c['symbol']!,
+                    style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.primaryLight),
+                  ),
+                  title: Text(c['name']!, style: const TextStyle(color: Colors.white)),
+                  trailing: isSelected ? const Icon(Icons.check_circle_rounded, color: AppColors.accent) : null,
+                  onTap: () {
+                    financeProv.setCurrency(c['symbol']!);
+                    Navigator.of(ctx).pop();
+                  },
+                );
+              }).toList(),
+            ],
+          ),
         );
       },
     );
@@ -67,12 +77,16 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        backgroundColor: const Color(0xFF131A2A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.white.withOpacity(0.12)),
+        ),
         title: const Row(
           children: [
-            Icon(Icons.vpn_key_rounded, color: AppColors.primary),
+            Icon(Icons.vpn_key_rounded, color: AppColors.primaryLight),
             SizedBox(width: 8),
-            Text('Google Cloud Credentials', style: TextStyle(fontSize: 17)),
+            Text('Google Cloud Credentials', style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white)),
           ],
         ),
         content: SingleChildScrollView(
@@ -80,31 +94,32 @@ class SettingsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text(
+              Text(
                 'Google Sign-In on Android requires registering this app\'s SHA-1 fingerprint in your Google Cloud Console project.',
-                style: TextStyle(fontSize: 13),
+                style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.7)),
               ),
               const SizedBox(height: 14),
 
               // Package Name
-              const Text('Package Name:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              const Text('Package Name:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.12),
+                  color: Colors.white.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
                 ),
                 child: Row(
                   children: [
                     const Expanded(
                       child: Text(
                         GoogleAuthService.appPackageName,
-                        style: TextStyle(fontSize: 11, fontFamily: 'monospace'),
+                        style: TextStyle(fontSize: 11, fontFamily: 'monospace', color: Colors.white),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.copy_rounded, size: 16),
+                      icon: const Icon(Icons.copy_rounded, size: 16, color: AppColors.accent),
                       tooltip: 'Copy Package Name',
                       onPressed: () {
                         Clipboard.setData(const ClipboardData(text: GoogleAuthService.appPackageName));
@@ -119,24 +134,25 @@ class SettingsScreen extends StatelessWidget {
               const SizedBox(height: 12),
 
               // SHA-1
-              const Text('SHA-1 Certificate Fingerprint:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12)),
+              const Text('SHA-1 Certificate Fingerprint:', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12, color: Colors.white)),
               const SizedBox(height: 4),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.grey.withOpacity(0.12),
+                  color: Colors.white.withOpacity(0.06),
                   borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: Colors.white.withOpacity(0.1)),
                 ),
                 child: Row(
                   children: [
                     const Expanded(
                       child: Text(
                         GoogleAuthService.appDebugSha1,
-                        style: TextStyle(fontSize: 10, fontFamily: 'monospace'),
+                        style: TextStyle(fontSize: 10, fontFamily: 'monospace', color: Colors.white),
                       ),
                     ),
                     IconButton(
-                      icon: const Icon(Icons.copy_rounded, size: 16),
+                      icon: const Icon(Icons.copy_rounded, size: 16, color: AppColors.accent),
                       tooltip: 'Copy SHA-1',
                       onPressed: () {
                         Clipboard.setData(const ClipboardData(text: GoogleAuthService.appDebugSha1));
@@ -150,14 +166,14 @@ class SettingsScreen extends StatelessWidget {
               ),
               const SizedBox(height: 14),
 
-              const Text(
+              Text(
                 'Steps in Google Cloud Console:\n'
                 '1. Go to APIs & Services > Credentials.\n'
                 '2. Click "Create Credentials" > "OAuth client ID".\n'
                 '3. Choose Application Type: Android.\n'
                 '4. Paste the Package Name and SHA-1 above.\n'
                 '5. In "Enabled APIs", turn ON Google Drive API.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+                style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6)),
               ),
             ],
           ),
@@ -165,13 +181,17 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Close'),
+            child: Text('Close', style: TextStyle(color: Colors.white.withOpacity(0.7))),
           ),
           ElevatedButton(
             onPressed: () {
               Navigator.of(ctx).pop();
               _showQuickEmailConnectDialog(context);
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Quick Link Email'),
           ),
         ],
@@ -186,33 +206,37 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Link Google Account Email'),
+        backgroundColor: const Color(0xFF131A2A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.white.withOpacity(0.12)),
+        ),
+        title: const Text('Link Google Account Email', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            const Text(
+            Text(
               'Enter your Google account email to link your profile for Drive attribution and backups:',
-              style: TextStyle(fontSize: 13),
+              style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.7)),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 14),
             TextField(
               controller: emailController,
               decoration: const InputDecoration(
                 labelText: 'Google Email',
                 hintText: 'e.g. user@gmail.com',
-                prefixIcon: Icon(Icons.email_outlined),
+                prefixIcon: Icon(Icons.email_outlined, color: AppColors.primary),
               ),
               keyboardType: TextInputType.emailAddress,
               autofocus: true,
             ),
-            const SizedBox(height: 10),
+            const SizedBox(height: 12),
             TextField(
               controller: nameController,
               decoration: const InputDecoration(
                 labelText: 'Your Name (Optional)',
                 hintText: 'e.g. Alex',
-                prefixIcon: Icon(Icons.person_outline_rounded),
+                prefixIcon: Icon(Icons.person_outline_rounded, color: AppColors.accent),
               ),
             ),
           ],
@@ -220,7 +244,7 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: Colors.white.withOpacity(0.7))),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -236,6 +260,10 @@ class SettingsScreen extends StatelessWidget {
                 }
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.primary,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Link Account'),
           ),
         ],
@@ -259,22 +287,27 @@ class SettingsScreen extends StatelessWidget {
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: const Text('Restore from JSON Backup'),
+        backgroundColor: const Color(0xFF131A2A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.white.withOpacity(0.12)),
+        ),
+        title: const Text('Restore from JSON Backup', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white)),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Paste your exported JSON backup data here to merge into your database:',
-              style: TextStyle(fontSize: 13),
+              style: TextStyle(fontSize: 13, color: Colors.white.withOpacity(0.7)),
             ),
             const SizedBox(height: 12),
             TextField(
               controller: textController,
               maxLines: 6,
+              style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
               decoration: const InputDecoration(
                 hintText: '{\n  "app": "Open Finance Manager",\n  "groups": [...]\n}',
-                border: OutlineInputBorder(),
               ),
             ),
           ],
@@ -282,7 +315,7 @@ class SettingsScreen extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(),
-            child: const Text('Cancel'),
+            child: Text('Cancel', style: TextStyle(color: Colors.white.withOpacity(0.7))),
           ),
           ElevatedButton(
             onPressed: () async {
@@ -309,6 +342,10 @@ class SettingsScreen extends StatelessWidget {
                 }
               }
             },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.accent,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            ),
             child: const Text('Restore & Merge'),
           ),
         ],
@@ -322,30 +359,37 @@ class SettingsScreen extends StatelessWidget {
     final syncProv = context.watch<SyncProvider>();
     final financeProv = context.watch<FinanceProvider>();
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Settings & Cloud Sync'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Google Drive Cloud Sync Card
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-            child: Padding(
-              padding: const EdgeInsets.all(18),
+    return AmbientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          title: const Text('Settings & Cloud Sync', style: TextStyle(fontWeight: FontWeight.bold)),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          children: [
+            // Google Drive Cloud Sync Card
+            GlassContainer(
+              borderRadius: 24,
+              padding: const EdgeInsets.all(20),
+              tintColor: AppColors.primary,
+              opacity: 0.16,
+              borderColor: AppColors.primary.withOpacity(0.35),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Row(
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(10),
+                        padding: const EdgeInsets.all(12),
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withOpacity(0.12),
+                          color: AppColors.primary.withOpacity(0.2),
                           shape: BoxShape.circle,
+                          border: Border.all(color: AppColors.primary.withOpacity(0.4)),
                         ),
-                        child: const Icon(Icons.add_to_drive_rounded, color: AppColors.primary, size: 24),
+                        child: const Icon(Icons.add_to_drive_rounded, color: AppColors.accent, size: 26),
                       ),
                       const SizedBox(width: 14),
                       Expanded(
@@ -354,15 +398,16 @@ class SettingsScreen extends StatelessWidget {
                           children: [
                             const Text(
                               'Google Drive Sync',
-                              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              style: TextStyle(fontSize: 17, fontWeight: FontWeight.bold, color: Colors.white),
                             ),
+                            const SizedBox(height: 2),
                             Text(
                               authProv.isSignedIn
                                   ? (authProv.userEmail ?? 'Connected')
                                   : 'Not connected. Connect to sync across devices.',
                               style: TextStyle(
                                 fontSize: 12,
-                                color: authProv.isSignedIn ? AppColors.income : Colors.grey,
+                                color: authProv.isSignedIn ? AppColors.income : Colors.white.withOpacity(0.6),
                                 fontWeight: FontWeight.w600,
                               ),
                             ),
@@ -372,7 +417,7 @@ class SettingsScreen extends StatelessWidget {
                     ],
                   ),
                   const SizedBox(height: 16),
-                  const Divider(),
+                  Divider(color: Colors.white.withOpacity(0.12)),
                   const SizedBox(height: 8),
 
                   // Connect / Disconnect button
@@ -403,6 +448,7 @@ class SettingsScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
                     const SizedBox(height: 10),
@@ -412,33 +458,42 @@ class SettingsScreen extends StatelessWidget {
                       label: const Text('Quick Link with Google Email'),
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size.fromHeight(44),
+                        foregroundColor: Colors.white,
+                        side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
                     const SizedBox(height: 8),
                     Center(
                       child: TextButton.icon(
                         onPressed: () => _showGoogleSetupHelper(context),
-                        icon: const Icon(Icons.help_outline_rounded, size: 16),
-                        label: const Text('View SHA-1 & Google Cloud Setup Guide', style: TextStyle(fontSize: 12)),
+                        icon: const Icon(Icons.help_outline_rounded, size: 16, color: AppColors.accent),
+                        label: const Text(
+                          'View SHA-1 & Google Cloud Setup Guide',
+                          style: TextStyle(fontSize: 12, color: AppColors.accent),
+                        ),
                       ),
                     ),
                   ] else ...[
                     // Auto-sync toggle
                     SwitchListTile(
                       contentPadding: EdgeInsets.zero,
-                      title: const Text('Auto-Sync on Every Change', style: TextStyle(fontWeight: FontWeight.bold)),
-                      subtitle: const Text(
+                      title: const Text(
+                        'Auto-Sync on Every Change',
+                        style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                      ),
+                      subtitle: Text(
                         'Automatically uploads changes to Google Drive whenever you add or edit transactions.',
-                        style: TextStyle(fontSize: 12),
+                        style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6)),
                       ),
                       value: syncProv.isAutoSyncEnabled,
-                      activeColor: AppColors.primary,
+                      activeColor: AppColors.accent,
                       onChanged: (val) {
                         syncProv.toggleAutoSync(val);
                       },
                     ),
 
-                    const SizedBox(height: 8),
+                    const SizedBox(height: 10),
 
                     // Manual Sync Now button
                     ElevatedButton.icon(
@@ -469,6 +524,7 @@ class SettingsScreen extends StatelessWidget {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.accent,
                         minimumSize: const Size.fromHeight(48),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
                       ),
                     ),
 
@@ -479,101 +535,173 @@ class SettingsScreen extends StatelessWidget {
                       Center(
                         child: Text(
                           'Last synced: ${DateFormat('d MMM yyyy, h:mm a').format(syncProv.lastSyncedAt!)}',
-                          style: const TextStyle(fontSize: 11, color: Colors.grey),
+                          style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.6)),
                         ),
                       ),
 
                     const SizedBox(height: 12),
                     OutlinedButton(
                       onPressed: () => authProv.signOut(),
-                      style: OutlinedButton.styleFrom(minimumSize: const Size.fromHeight(40)),
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size.fromHeight(40),
+                        foregroundColor: AppColors.expense,
+                        side: BorderSide(color: AppColors.expense.withOpacity(0.4)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
                       child: const Text('Disconnect Account'),
                     ),
                   ],
                 ],
               ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 16),
 
-          // Google Cloud Help Card
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: ListTile(
-              leading: const Icon(Icons.key_rounded, color: AppColors.accent),
-              title: const Text('Google Cloud & SHA-1 Credentials'),
-              subtitle: const Text('Copy package name & debug SHA-1 for Google Cloud Console OAuth setup'),
-              trailing: const Icon(Icons.chevron_right_rounded),
-              onTap: () => _showGoogleSetupHelper(context),
+            // Google Cloud Help Card
+            GlassContainer(
+              borderRadius: 18,
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.accent.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.key_rounded, color: AppColors.accent),
+                ),
+                title: const Text('Google Cloud & SHA-1 Credentials', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                subtitle: Text('Copy package name & debug SHA-1 for Google Cloud Console OAuth setup', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6))),
+                trailing: Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.5)),
+                onTap: () => _showGoogleSetupHelper(context),
+              ),
             ),
-          ),
-          const SizedBox(height: 16),
+            const SizedBox(height: 20),
 
-          // Preferences section
-          const Text('Preferences', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
-          const SizedBox(height: 8),
-
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.currency_exchange_rounded, color: AppColors.primary),
-                  title: const Text('Default Currency'),
-                  subtitle: Text('Current: ${financeProv.currencySymbol}'),
-                  trailing: const Icon(Icons.chevron_right_rounded),
-                  onTap: () => _showCurrencyPicker(context),
-                ),
-              ],
+            // Preferences section
+            Text(
+              'PREFERENCES',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
+                color: Colors.white.withOpacity(0.6),
+              ),
             ),
-          ),
-          const SizedBox(height: 20),
+            const SizedBox(height: 10),
 
-          // Local JSON Backup / Restore
-          const Text('Offline Data & Backup', style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: Colors.grey)),
-          const SizedBox(height: 8),
-
-          Card(
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-            child: Column(
-              children: [
-                ListTile(
-                  leading: const Icon(Icons.upload_file_rounded, color: AppColors.accent),
-                  title: const Text('Export JSON Backup'),
-                  subtitle: const Text('Save or share all ledgers and transactions as a JSON file to your Google Drive or WhatsApp'),
-                  onTap: () => _exportJsonBackup(context),
+            GlassContainer(
+              borderRadius: 18,
+              padding: EdgeInsets.zero,
+              child: ListTile(
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withOpacity(0.15),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.currency_exchange_rounded, color: AppColors.primaryLight),
                 ),
-                const Divider(height: 1),
-                ListTile(
-                  leading: const Icon(Icons.download_rounded, color: AppColors.income),
-                  title: const Text('Import / Restore Backup'),
-                  subtitle: const Text('Paste JSON data to restore or merge transactions'),
-                  onTap: () => _importJsonBackup(context),
-                ),
-              ],
+                title: const Text('Default Currency', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                subtitle: Text('Current: ${financeProv.currencySymbol}', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6))),
+                trailing: Icon(Icons.chevron_right_rounded, color: Colors.white.withOpacity(0.5)),
+                onTap: () => _showCurrencyPicker(context),
+              ),
             ),
-          ),
-          const SizedBox(height: 24),
+            const SizedBox(height: 20),
 
-          // App Info
-          const Center(
-            child: Column(
-              children: [
-                Text(
-                  '${AppConstants.appName} v${AppConstants.appVersion}',
-                  style: TextStyle(fontWeight: FontWeight.bold, color: Colors.grey),
-                ),
-                SizedBox(height: 4),
-                Text(
-                  'Privacy-First Finance Management with Google Drive',
-                  style: TextStyle(fontSize: 11, color: Colors.grey),
-                ),
-              ],
+            // Local JSON Backup / Restore
+            Text(
+              'OFFLINE DATA & BACKUP',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 1.2,
+                color: Colors.white.withOpacity(0.6),
+              ),
             ),
-          ),
-          const SizedBox(height: 30),
-        ],
+            const SizedBox(height: 10),
+
+            GlassContainer(
+              borderRadius: 18,
+              padding: EdgeInsets.zero,
+              child: Column(
+                children: [
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.accent.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.upload_file_rounded, color: AppColors.accent),
+                    ),
+                    title: const Text('Export JSON Backup', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                    subtitle: Text('Save or share all ledgers and transactions as a JSON file to your Google Drive or WhatsApp', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6))),
+                    onTap: () => _exportJsonBackup(context),
+                  ),
+                  Divider(height: 1, color: Colors.white.withOpacity(0.08)),
+                  ListTile(
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: AppColors.income.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                      child: const Icon(Icons.download_rounded, color: AppColors.income),
+                    ),
+                    title: const Text('Import / Restore Backup', style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white)),
+                    subtitle: Text('Paste JSON data to restore or merge transactions', style: TextStyle(fontSize: 12, color: Colors.white.withOpacity(0.6))),
+                    onTap: () => _importJsonBackup(context),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 28),
+
+            // App Info with App Logo
+            Center(
+              child: Column(
+                children: [
+                  Container(
+                    width: 52,
+                    height: 52,
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(color: Colors.white.withOpacity(0.2)),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.3),
+                          blurRadius: 16,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: ClipRRect(
+                      borderRadius: BorderRadius.circular(13),
+                      child: Image.asset(
+                        'assets/images/app_logo.png',
+                        fit: BoxFit.cover,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 10),
+                  const Text(
+                    '${AppConstants.appName} v${AppConstants.appVersion}',
+                    style: TextStyle(fontWeight: FontWeight.bold, color: Colors.white),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Privacy-First Finance Management with Google Drive',
+                    style: TextStyle(fontSize: 11, color: Colors.white.withOpacity(0.5)),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 36),
+          ],
+        ),
       ),
     );
   }
 }
+

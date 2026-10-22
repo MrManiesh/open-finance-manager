@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/theme/app_colors.dart';
@@ -14,10 +15,11 @@ class SyncStatusBadge extends StatelessWidget {
   Widget build(BuildContext context) {
     final authProv = context.watch<AuthProvider>();
     final syncProv = context.watch<SyncProvider>();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     Color dotColor = Colors.grey;
-    String statusText = 'Not Connected';
-    Widget icon = const Icon(Icons.cloud_off_rounded, size: 14, color: Colors.grey);
+    String statusText = 'Drive Offline';
+    Widget icon = const Icon(Icons.cloud_off_rounded, size: 13, color: Colors.grey);
 
     if (authProv.isSignedIn) {
       if (syncProv.status == SyncStatus.syncing) {
@@ -31,42 +33,54 @@ class SyncStatusBadge extends StatelessWidget {
       } else if (syncProv.status == SyncStatus.error) {
         dotColor = AppColors.warning;
         statusText = 'Sync Error';
-        icon = const Icon(Icons.sync_problem_rounded, size: 14, color: AppColors.warning);
+        icon = const Icon(Icons.sync_problem_rounded, size: 13, color: AppColors.warning);
       } else if (syncProv.pendingCount > 0) {
         dotColor = AppColors.accent;
         statusText = 'Sync Queued';
-        icon = const Icon(Icons.cloud_upload_rounded, size: 14, color: AppColors.accent);
+        icon = const Icon(Icons.cloud_upload_rounded, size: 13, color: AppColors.accent);
       } else {
         dotColor = AppColors.income;
         statusText = 'Drive Synced';
-        icon = const Icon(Icons.cloud_done_rounded, size: 14, color: AppColors.income);
+        icon = const Icon(Icons.cloud_done_rounded, size: 13, color: AppColors.income);
       }
     }
 
-    return InkWell(
-      onTap: onTap,
+    return ClipRRect(
       borderRadius: BorderRadius.circular(20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-        decoration: BoxDecoration(
-          color: dotColor.withOpacity(0.12),
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: dotColor.withOpacity(0.3), width: 1),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon,
-            const SizedBox(width: 6),
-            Text(
-              statusText,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: dotColor,
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 8, sigmaY: 8),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+              decoration: BoxDecoration(
+                color: dotColor.withOpacity(isDark ? 0.12 : 0.15),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: dotColor.withOpacity(isDark ? 0.35 : 0.45),
+                  width: 1,
+                ),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  icon,
+                  const SizedBox(width: 5),
+                  Text(
+                    statusText,
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: dotColor,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
+          ),
         ),
       ),
     );

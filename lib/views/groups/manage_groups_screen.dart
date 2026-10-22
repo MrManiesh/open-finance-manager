@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../core/theme/app_colors.dart';
+import '../../core/widgets/ambient_background.dart';
+import '../../core/widgets/glass_container.dart';
 import '../../models/finance_group.dart';
 import '../../providers/finance_provider.dart';
 import 'create_edit_group_dialog.dart';
@@ -23,69 +25,78 @@ class ManageGroupsScreen extends StatelessWidget {
     final financeProv = context.watch<FinanceProvider>();
     final groups = financeProv.groups;
     final activeGroup = financeProv.activeGroup;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: onBackToDashboard != null
-            ? IconButton(
-                icon: const Icon(Icons.arrow_back_rounded),
-                tooltip: 'Back to Dashboard',
-                onPressed: onBackToDashboard,
-              )
-            : null,
-        title: const Text('Finance Circles & Groups'),
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(16),
-        children: [
-          // Banner tip
-          Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withOpacity(0.08),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primary.withOpacity(0.2)),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.lightbulb_rounded, color: AppColors.primary, size: 22),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Text(
-                    'Organize your finances into separate books: Family, Friends, Business/Company, Milk & groceries. Each group maintains independent balances and members.',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: Theme.of(context).textTheme.bodyMedium?.color?.withOpacity(0.85),
+    return AmbientBackground(
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        appBar: AppBar(
+          backgroundColor: Colors.transparent,
+          elevation: 0,
+          leading: onBackToDashboard != null
+              ? IconButton(
+                  icon: const Icon(Icons.arrow_back_rounded),
+                  tooltip: 'Back to Dashboard',
+                  onPressed: onBackToDashboard,
+                )
+              : null,
+          title: const Text(
+            'Finance Circles & Groups',
+            style: TextStyle(fontWeight: FontWeight.w800, fontSize: 18),
+          ),
+        ),
+        body: ListView(
+          padding: const EdgeInsets.fromLTRB(16, 8, 16, 100),
+          children: [
+            // Glass Banner Tip
+            GlassContainer(
+              padding: const EdgeInsets.all(14),
+              borderRadius: 18,
+              color: AppColors.primary.withOpacity(isDark ? 0.14 : 0.25),
+              borderColor: AppColors.primary.withOpacity(0.35),
+              child: Row(
+                children: [
+                  const Icon(Icons.lightbulb_rounded, color: AppColors.primaryLight, size: 22),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(
+                      'Organize finances into separate books: Family, Friends, Business, Daily Groceries. Each group maintains independent balances and partners.',
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                        color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: 16),
-
-          ...groups.map((group) {
-            final isSelected = activeGroup?.id == group.id;
-            final color = Color(group.colorValue);
-
-            return Card(
-              margin: const EdgeInsets.only(bottom: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(18),
-                side: BorderSide(
-                  color: isSelected ? color : Theme.of(context).dividerColor.withOpacity(0.3),
-                  width: isSelected ? 2 : 1,
-                ),
+                ],
               ),
-              child: InkWell(
-                onTap: () {
-                  financeProv.selectGroup(group);
-                },
-                borderRadius: BorderRadius.circular(18),
-                child: Padding(
-                  padding: const EdgeInsets.all(16),
+            ),
+            const SizedBox(height: 16),
+
+            ...groups.map((group) {
+              final isSelected = activeGroup?.id == group.id;
+              final color = Color(group.colorValue);
+
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: GlassContainer(
+                  borderRadius: 22,
+                  borderColor: isSelected ? color.withOpacity(0.8) : null,
+                  boxShadow: isSelected
+                      ? [
+                          BoxShadow(
+                            color: color.withOpacity(0.25),
+                            blurRadius: 16,
+                            offset: const Offset(0, 4),
+                          ),
+                        ]
+                      : null,
+                  onTap: () {
+                    financeProv.selectGroup(group);
+                  },
                   child: Row(
                     children: [
+                      // Group Icon
                       CircleAvatar(
                         radius: 22,
                         backgroundColor: color.withOpacity(0.2),
@@ -96,6 +107,8 @@ class ManageGroupsScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 14),
+
+                      // Group Info
                       Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
@@ -104,7 +117,7 @@ class ManageGroupsScreen extends StatelessWidget {
                               children: [
                                 Text(
                                   group.name,
-                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
                                 ),
                                 if (isSelected) ...[
                                   const SizedBox(width: 8),
@@ -126,12 +139,17 @@ class ManageGroupsScreen extends StatelessWidget {
                               const SizedBox(height: 4),
                               Text(
                                 group.description,
-                                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                                ),
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
                             ],
                             const SizedBox(height: 8),
+
+                            // Partner Tags
                             Wrap(
                               spacing: 6,
                               runSpacing: 4,
@@ -139,7 +157,7 @@ class ManageGroupsScreen extends StatelessWidget {
                                 ...group.members.take(3).map((m) => Container(
                                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                       decoration: BoxDecoration(
-                                        color: color.withOpacity(0.12),
+                                        color: color.withOpacity(0.15),
                                         borderRadius: BorderRadius.circular(6),
                                       ),
                                       child: Text(
@@ -162,6 +180,8 @@ class ManageGroupsScreen extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 8),
+
+                            // Manage Partners Action
                             InkWell(
                               onTap: () {
                                 financeProv.selectGroup(group);
@@ -193,6 +213,8 @@ class ManageGroupsScreen extends StatelessWidget {
                           ],
                         ),
                       ),
+
+                      // Popup Menu
                       PopupMenuButton<String>(
                         icon: const Icon(Icons.more_vert_rounded),
                         onSelected: (val) {
@@ -226,7 +248,7 @@ class ManageGroupsScreen extends StatelessWidget {
                               children: [
                                 Icon(Icons.people_rounded, size: 18),
                                 SizedBox(width: 8),
-                                Text('Members & Settlements'),
+                                Text('Partners & Settlements'),
                               ],
                             ),
                           ),
@@ -236,7 +258,7 @@ class ManageGroupsScreen extends StatelessWidget {
                               children: [
                                 Icon(Icons.edit_outlined, size: 18),
                                 SizedBox(width: 8),
-                                Text('Edit Group'),
+                                Text('Edit Circle'),
                               ],
                             ),
                           ),
@@ -247,7 +269,7 @@ class ManageGroupsScreen extends StatelessWidget {
                                 children: [
                                   Icon(Icons.delete_outline_rounded, size: 18, color: AppColors.expense),
                                   SizedBox(width: 8),
-                                  Text('Delete Group', style: TextStyle(color: AppColors.expense)),
+                                  Text('Delete Circle', style: TextStyle(color: AppColors.expense)),
                                 ],
                               ),
                             ),
@@ -256,16 +278,19 @@ class ManageGroupsScreen extends StatelessWidget {
                     ],
                   ),
                 ),
-              ),
-            );
-          }).toList(),
-          const SizedBox(height: 80),
-        ],
-      ),
-      floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _openCreateGroupDialog(context),
-        icon: const Icon(Icons.add_rounded),
-        label: const Text('New Finance Group'),
+              );
+            }).toList(),
+            const SizedBox(height: 60),
+          ],
+        ),
+        floatingActionButton: Padding(
+          padding: const EdgeInsets.only(bottom: 70),
+          child: FloatingActionButton.extended(
+            onPressed: () => _openCreateGroupDialog(context),
+            icon: const Icon(Icons.add_rounded),
+            label: const Text('New Circle', style: TextStyle(fontWeight: FontWeight.bold)),
+          ),
+        ),
       ),
     );
   }
@@ -276,7 +301,7 @@ class ManageGroupsScreen extends StatelessWidget {
       builder: (ctx) => AlertDialog(
         title: Text('Delete "${group.name}"?'),
         content: const Text(
-          'This will permanently delete this group and all associated transactions in it.',
+          'This will permanently delete this circle and all associated transactions in it.',
         ),
         actions: [
           TextButton(
