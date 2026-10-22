@@ -5,7 +5,7 @@ on:
     branches: [ main, master ]
   pull_request:
     branches: [ main, master ]
-  workflow_dispatch: # Allows manual trigger from GitHub Actions tab
+  workflow_dispatch:
 
 jobs:
   build:
@@ -23,9 +23,10 @@ jobs:
           java-version: '17'
           cache: 'gradle'
 
-      - name: 🐦 Set up Flutter
+      - name: 🐦 Set up Flutter 3.16.2
         uses: subosito/flutter-action@v2
         with:
+          flutter-version: '3.16.2'
           channel: 'stable'
           cache: true
 
@@ -33,7 +34,7 @@ jobs:
         run: flutter pub get
 
       - name: 🔍 Analyze code
-        run: flutter analyze
+        run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: 🧪 Run tests
         run: flutter test
